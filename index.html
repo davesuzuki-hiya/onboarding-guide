@@ -567,8 +567,10 @@
                 openChecklistButton.classList.add('hidden');
             }
 
-            closeOnboardingPopup();
+            // Explicitly close the popup and show the FAB/progress card
+            onboardingPopup.classList.remove('open');
             document.getElementById('fab-progress-container').style.display = 'block';
+            isOnboardingPopupOpen = false;
         };
 
         // Adjust checklist and popup visibility on window resize
