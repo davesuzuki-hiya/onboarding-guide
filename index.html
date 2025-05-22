@@ -3,90 +3,220 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GitHub Repositories - @davesuzuki-hiya</title>
+    <title>Onboarding Guide</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            line-height: 1.6;
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 2rem;
-            color: #24292e;
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc; /* Light blue-gray background */
+            min-height: 100vh; /* Ensure body takes full viewport height */
         }
-        h1 {
-            color: #0366d6;
-            border-bottom: 1px solid #eaecef;
-            padding-bottom: 0.3em;
+        /* Custom scrollbar for checklist if content overflows */
+        .checklist-scroll {
+            max-height: calc(100vh - 100px); /* Adjust based on header/footer if any */
+            overflow-y: auto;
+            scrollbar-width: thin; /* Firefox */
+            scrollbar-color: #cbd5e1 #f1f5f9; /* Thumb and track color */
         }
-        h2 {
-            color: #0366d6;
-            margin-top: 2em;
+        .checklist-scroll::-webkit-scrollbar {
+            width: 8px;
         }
-        .repo-card {
-            border: 1px solid #e1e4e8;
-            border-radius: 6px;
-            padding: 1.5rem;
-            margin: 1rem 0;
-            background-color: #fff;
+        .checklist-scroll::-webkit-scrollbar-track {
+            background: #f1f5f9; /* Light track */
+            border-radius: 10px;
         }
-        .repo-card:hover {
-            box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+        .checklist-scroll::-webkit-scrollbar-thumb {
+            background-color: #cbd5e1; /* Gray thumb */
+            border-radius: 10px;
+            border: 2px solid #f1f5f9; /* Padding around thumb */
         }
-        .repo-title {
-            color: #0366d6;
-            text-decoration: none;
-            font-size: 1.25rem;
-            font-weight: 600;
+        /* Spinner animation */
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
-        .repo-title:hover {
-            text-decoration: underline;
+        .animate-spin-fast {
+            animation: spin 0.8s linear infinite;
         }
-        .repo-meta {
-            color: #586069;
-            font-size: 0.875rem;
-            margin-top: 0.5rem;
+
+        /* Celebration modal animations */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
         }
-        .repo-description {
-            margin-top: 0.5rem;
+        @keyframes zoomIn {
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
         }
-        .profile-link {
-            display: inline-block;
-            margin-top: 2rem;
-            color: #0366d6;
-            text-decoration: none;
+        .fade-in { animation: fadeIn 0.3s ease-out forwards; }
+        .zoom-in { animation: zoomIn 0.3s ease-out forwards; }
+
+        /* Onboarding Popup specific styles */
+        #onboarding-popup {
+            position: fixed;
+            bottom: 1rem; /* Adjust as needed */
+            right: 1rem; /* Adjust as needed */
+            width: calc(100% - 2rem); /* Full width minus margin on small screens */
+            max-width: 400px; /* Max width for larger screens */
+            height: auto;
+            max-height: calc(100vh - 2rem); /* Max height to fit viewport */
+            background-color: white;
+            border-radius: 0.75rem; /* rounded-xl */
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); /* shadow-2xl */
+            transform: translateX(120%); /* Start off-screen to the right */
+            transition: transform 0.3s ease-out;
+            z-index: 60; /* Above checklist, below modal */
+            display: flex;
+            flex-direction: column;
+            overflow: hidden; /* Hide scrollbar for popup itself */
         }
-        .profile-link:hover {
-            text-decoration: underline;
+
+        #onboarding-popup.open {
+            transform: translateX(0); /* Slide in */
+        }
+
+        #onboarding-popup-content {
+            padding: 1.5rem 1.5rem 2.5rem 1.5rem; /* p-6, more padding at bottom for FAB */
+            overflow-y: auto; /* Enable scrolling for content inside popup */
+            flex-grow: 1;
+            /* Custom scrollbar for popup content */
+            scrollbar-width: thin; /* Firefox */
+            scrollbar-color: #cbd5e1 #f1f5f9; /* Thumb and track color */
+        }
+        #onboarding-popup-content::-webkit-scrollbar {
+            width: 8px;
+        }
+        #onboarding-popup-content::-webkit-scrollbar-track {
+            background: #f1f5f9; /* Light track */
+            border-radius: 10px;
+        }
+        #onboarding-popup-content::-webkit-scrollbar-thumb {
+            background-color: #cbd5e1; /* Gray thumb */
+            border-radius: 10px;
+            border: 2px solid #f1f5f9; /* Padding around thumb */
+        }
+
+        /* Floating Action Button (FAB) */
+        #open-onboarding-fab {
+            position: fixed;
+            bottom: 1rem;
+            right: 1rem;
+            background-color: #4f46e5; /* indigo-600 */
+            color: white;
+            padding: 0.75rem 1.25rem;
+            border-radius: 9999px; /* rounded-full */
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); /* shadow-lg */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background-color 0.2s ease-in-out, transform 0.2s ease-in-out;
+            z-index: 70; /* Above popup */
+        }
+        #open-onboarding-fab:hover {
+            background-color: #4338ca; /* indigo-700 */
+            transform: translateY(-2px);
+        }
+        #open-onboarding-fab.hidden {
+            display: none;
         }
     </style>
 </head>
-<body>
-    <h1>GitHub Repositories</h1>
-    <h2>@davesuzuki-hiya</h2>
+<body class="flex flex-col lg:flex-row min-h-screen relative">
 
-    <div class="repo-card">
-        <a href="https://github.com/davesuzuki-hiya/kanji-tattoo-finder" class="repo-title">kanji-tattoo-finder</a>
-        <div class="repo-meta">
-            <span>JavaScript</span> • 
-            <span>MIT License</span> • 
-            <span>Updated April 25, 2025</span>
-        </div>
-        <div class="repo-description">
-            A tool for finding kanji tattoo designs
+    <div class="flex-1 p-4 sm:p-6 lg:p-8 lg:ml-64">
+        <div class="max-w-4xl mx-auto bg-white shadow-lg rounded-xl p-6 sm:p-8 lg:p-10 min-h-[60vh]">
+            <h1 class="text-3xl sm:text-4xl font-bold text-gray-800 mb-4">Your Main Application Dashboard</h1>
+            <p class="text-gray-600">
+                This area represents the rest of your application. The onboarding guide will appear as a popup on the right.
+                You can interact with the main content while the onboarding guide is minimized or open.
+            </p>
+            <div class="mt-8 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                <p class="text-gray-700 font-medium">Example Content:</p>
+                <ul class="list-disc list-inside text-gray-600 mt-2">
+                    <li>View your analytics here.</li>
+                    <li>Manage your phone numbers.</li>
+                    <li>Check your billing details.</li>
+                </ul>
+            </div>
         </div>
     </div>
 
-    <div class="repo-card">
-        <a href="https://github.com/davesuzuki-hiya/simple-todo" class="repo-title">simple-todo</a>
-        <div class="repo-meta">
-            <span>HTML</span> • 
-            <span>Updated April 21, 2025</span>
+    <div class="fixed bottom-0 left-0 lg:top-0 lg:left-0 w-full lg:w-64 bg-white lg:bg-gray-50 shadow-xl lg:shadow-md rounded-t-xl lg:rounded-none z-50 p-4 lg:p-6 transition-all duration-300 ease-in-out border-t lg:border-r border-gray-200">
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-lg font-semibold text-gray-800 flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-indigo-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                </svg>
+                Your Onboarding Checklist
+            </h2>
+            <button id="close-checklist" class="lg:hidden p-2 rounded-full hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+            <button id="open-checklist" class="lg:hidden fixed bottom-4 right-4 bg-indigo-600 text-white p-3 rounded-full shadow-lg hover:bg-indigo-700 focus:outline-none focus:ring-4 focus:ring-indigo-500 z-50">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                </svg>
+            </button>
         </div>
-        <div class="repo-description">
-            A simple todo application
+        <div id="checklist-items" class="checklist-scroll space-y-3">
+            </div>
+    </div>
+
+    <div id="onboarding-popup" class="p-6 flex flex-col">
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-xl font-bold text-gray-800">Onboarding Checklist</h2>
+            <button id="close-onboarding-popup" class="p-2 rounded-full text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
+
+        <div class="mb-6">
+            <div class="flex justify-between items-center mb-2">
+                <span class="text-sm font-medium text-gray-700">Overall Progress</span>
+                <span id="progress-text" class="text-sm font-semibold text-indigo-600">0% Complete</span>
+            </div>
+            <div class="w-full bg-gray-200 rounded-full h-3">
+                <div id="progress-bar" class="bg-indigo-500 h-3 rounded-full transition-all duration-500 ease-out" style="width: 0%;"></div>
+            </div>
+        </div>
+
+        <div id="onboarding-popup-content" class="space-y-6">
+            </div>
+    </div>
+
+    <button id="open-onboarding-fab" class="hidden">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+        </svg>
+        Onboarding Checklist
+    </button>
+
+    <div id="celebration-modal" class="hidden fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-[100] fade-in">
+        <div class="bg-white rounded-xl shadow-2xl p-8 max-w-md w-11/12 text-center zoom-in relative">
+            <button id="close-celebration-modal" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 focus:outline-none">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+            <div class="text-green-500 mb-4">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-20 w-20 mx-auto animate-bounce" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+            </div>
+            <h2 class="text-3xl font-bold text-gray-800 mb-3">Congratulations!</h2>
+            <p class="text-lg text-gray-600 mb-6">You've successfully completed your onboarding!</p>
+            <p class="text-gray-500 text-sm">You are now ready to explore all the features.</p>
         </div>
     </div>
 
-    <a href="https://github.com/davesuzuki-hiya?tab=repositories" class="profile-link">View GitHub Profile →</a>
+    <script>
+        // ... existing code ...
+    </script>
 </body>
 </html> 
