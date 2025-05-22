@@ -216,7 +216,376 @@
     </div>
 
     <script>
-        // ... existing code ...
+        // Define the onboarding steps
+        const onboardingSteps = [
+            {
+                id: 'step1',
+                title: 'Add Phone Numbers',
+                description: 'Set up your primary and secondary phone numbers for communication and verification.',
+                completed: false,
+                buttonText: 'Add Numbers'
+            },
+            {
+                id: 'step2',
+                title: 'Confirm Your Numbers Are Branded',
+                description: 'Ensure your phone numbers are branded correctly for consistent customer experience.',
+                completed: false, // This will be set to true when brandingStatus is 'verified'
+                buttonText: 'Check Branding',
+                brandingStatus: 'not_started' // New status for branding verification: 'not_started', 'pending_verification', 'verified'
+            },
+            {
+                id: 'step3',
+                title: 'Check Dashboard',
+                description: 'Explore your dashboard to get an overview of your account activity and key metrics.',
+                completed: false,
+                buttonText: 'Go to Dashboard'
+            },
+            {
+                id: 'step4',
+                title: 'Check Analytics',
+                description: 'Dive into analytics to understand your performance and gain valuable insights.',
+                completed: false,
+                buttonText: 'View Analytics'
+            },
+            {
+                id: 'step5',
+                title: 'Check Billing and Subscriptions',
+                description: 'Review your billing information and manage your subscription plans.',
+                completed: false,
+                buttonText: 'Manage Billing'
+            }
+        ];
+
+        // Get DOM elements
+        const onboardingStepsContainer = document.getElementById('onboarding-popup-content'); // Now refers to popup content
+        const checklistItemsContainer = document.getElementById('checklist-items'); // Left sidebar checklist
+        const progressBar = document.getElementById('progress-bar'); // Inside popup
+        const progressText = document.getElementById('progress-text'); // Inside popup
+        const checklistPanel = document.querySelector('.fixed.lg\\:top-0.lg\\:left-0'); // The fixed left checklist panel
+        const closeChecklistButton = document.getElementById('close-checklist');
+        const openChecklistButton = document.getElementById('open-checklist'); // Mobile FAB for left checklist
+        const celebrationModal = document.getElementById('celebration-modal');
+        const closeCelebrationModalButton = document.getElementById('close-celebration-modal');
+
+        const onboardingPopup = document.getElementById('onboarding-popup'); // The new popup container
+        const openOnboardingFab = document.getElementById('open-onboarding-fab'); // The new FAB to open popup
+        const closeOnboardingPopupBtn = document.getElementById('close-onboarding-popup'); // Close button inside popup
+
+        let isOnboardingPopupOpen = false; // State to track if the right popup is open
+
+        /**
+         * Renders all onboarding steps inside the popup content area.
+         */
+        function renderOnboardingSteps() {
+            onboardingStepsContainer.innerHTML = ''; // Clear existing steps
+            onboardingSteps.forEach(step => {
+                const stepElement = document.createElement('div');
+                stepElement.id = `main-${step.id}`; // Unique ID for main step element
+
+                // Determine class based on completion or branding status
+                let stepClasses = `p-5 sm:p-6 border rounded-xl shadow-sm transition-all duration-300 ease-in-out`;
+                let buttonHtml = '';
+                let statusBadgeHtml = '';
+
+                if (step.id === 'step2' && step.brandingStatus === 'pending_verification') {
+                    stepClasses += ' bg-yellow-50 border-yellow-300';
+                    buttonHtml = `
+                        <button data-step-id="${step.id}" data-action="force-complete" class="mark-complete-btn inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-yellow-800 bg-yellow-200 hover:bg-yellow-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 transition-all duration-200 ease-in-out">
+                            <svg class="animate-spin-fast -ml-1 mr-3 h-5 w-5 text-yellow-800" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            Force Complete Verification (Demo)
+                        </button>
+                    `;
+                    statusBadgeHtml = `
+                        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            Pending Verification
+                        </span>
+                    `;
+                } else if (step.completed) {
+                    stepClasses += ' bg-green-50 border-green-300';
+                    statusBadgeHtml = `
+                        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            Completed
+                        </span>
+                    `;
+                } else {
+                    stepClasses += ' bg-white hover:shadow-md border-gray-200';
+                    buttonHtml = `
+                        <button data-step-id="${step.id}" data-action="default" class="mark-complete-btn inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-200 ease-in-out">
+                            ${step.buttonText}
+                            <svg xmlns="http://www.w3.org/2000/svg" class="ml-2 -mr-1 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+                            </svg>
+                        </button>
+                    `;
+                }
+
+                stepElement.className = stepClasses;
+                stepElement.innerHTML = `
+                    <div class="flex items-center mb-3">
+                        <div class="w-8 h-8 rounded-full flex items-center justify-center mr-3
+                                    ${step.completed ? 'bg-green-500 text-white' : (step.id === 'step2' && step.brandingStatus === 'pending_verification' ? 'bg-yellow-500 text-white' : 'bg-indigo-500 text-white')}">
+                            ${step.completed ? `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                                                </svg>` : (step.id === 'step2' && step.brandingStatus === 'pending_verification' ? `<svg class="animate-spin-fast h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                                                                                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                                                                                                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                                                                                                                </svg>` : `<span class="font-semibold">${onboardingSteps.indexOf(step) + 1}</span>`)}
+                        </div>
+                        <h3 class="text-xl font-semibold ${step.completed ? 'text-green-700 line-through' : (step.id === 'step2' && step.brandingStatus === 'pending_verification' ? 'text-yellow-700' : 'text-gray-800')}">${step.title}</h3>
+                    </div>
+                    <p class="text-gray-600 mb-4">${step.description}</p>
+                    ${buttonHtml}
+                    ${statusBadgeHtml}
+                `;
+                onboardingStepsContainer.appendChild(stepElement);
+            });
+
+            // Add event listeners to new buttons
+            document.querySelectorAll('.mark-complete-btn').forEach(button => {
+                button.addEventListener('click', (event) => {
+                    const stepId = event.target.dataset.stepId;
+                    const action = event.target.dataset.action;
+
+                    if (stepId === 'step2') {
+                        if (action === 'force-complete') {
+                            forceCompleteBrandingVerification();
+                        } else {
+                            startBrandingVerification();
+                        }
+                    } else {
+                        markStepComplete(stepId);
+                    }
+                });
+            });
+        }
+
+        /**
+         * Renders the checklist items in the fixed sidebar.
+         */
+        function renderChecklist() {
+            checklistItemsContainer.innerHTML = ''; // Clear existing checklist items
+            onboardingSteps.forEach(step => {
+                const listItem = document.createElement('div');
+                listItem.id = `checklist-${step.id}`; // Unique ID for checklist item
+
+                let listItemClasses = `flex items-center p-3 rounded-lg transition-all duration-200 ease-in-out`;
+                let iconHtml = '';
+                let textClasses = `text-sm font-medium`;
+
+                if (step.id === 'step2' && step.brandingStatus === 'pending_verification') {
+                    listItemClasses += ' bg-yellow-50 text-yellow-700';
+                    iconHtml = `
+                        <svg class="animate-spin-fast flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center mr-3 bg-yellow-500 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                    `;
+                    textClasses += ''; // No line-through
+                } else if (step.completed) {
+                    listItemClasses += ' bg-green-50 text-green-700';
+                    iconHtml = `
+                        <div class="flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center mr-3 bg-green-500 text-white">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                            </svg>
+                        </div>
+                    `;
+                    textClasses += ' line-through';
+                } else {
+                    listItemClasses += ' hover:bg-gray-100 text-gray-700';
+                    iconHtml = `
+                        <div class="flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center mr-3 border-2 border-gray-300 text-gray-500">
+                            <span class="text-xs font-semibold">${onboardingSteps.indexOf(step) + 1}</span>
+                        </div>
+                    `;
+                    textClasses += '';
+                }
+
+                listItem.className = listItemClasses;
+                listItem.innerHTML = `
+                    ${iconHtml}
+                    <span class="${textClasses}">${step.title}</span>
+                `;
+                checklistItemsContainer.appendChild(listItem);
+            });
+        }
+
+        /**
+         * Updates the overall progress bar and text.
+         */
+        function updateProgressBar() {
+            const completedSteps = onboardingSteps.filter(step => step.completed).length;
+            const totalSteps = onboardingSteps.length;
+            const progressPercentage = totalSteps === 0 ? 0 : Math.round((completedSteps / totalSteps) * 100);
+
+            progressBar.style.width = `${progressPercentage}%`;
+            progressText.textContent = `${progressPercentage}% Complete (${completedSteps} of ${totalSteps} steps)`;
+
+            // Check if all steps are completed
+            if (completedSteps === totalSteps) {
+                showCelebrationModal();
+            }
+        }
+
+        /**
+         * Marks a specific step as complete and updates the UI.
+         * @param {string} stepId - The ID of the step to mark as complete.
+         */
+        function markStepComplete(stepId) {
+            const stepIndex = onboardingSteps.findIndex(step => step.id === stepId);
+            if (stepIndex !== -1 && !onboardingSteps[stepIndex].completed) {
+                onboardingSteps[stepIndex].completed = true;
+                // Re-render both main steps and checklist to reflect changes
+                renderOnboardingSteps();
+                renderChecklist();
+                updateProgressBar();
+            }
+        }
+
+        /**
+         * Simulates the branding verification process for Step 2.
+         * This function now only handles the initial click to start pending.
+         */
+        function startBrandingVerification() {
+            const step2 = onboardingSteps.find(step => step.id === 'step2');
+            if (step2 && step2.brandingStatus === 'not_started') {
+                step2.brandingStatus = 'pending_verification';
+                renderOnboardingSteps(); // Update UI to show pending state
+                renderChecklist(); // Update checklist to show pending state
+
+                // In a real app, you'd trigger a backend call here.
+                // For demo, the 'Force Complete' button bypasses this timeout.
+                /*
+                setTimeout(() => {
+                    if (step2.brandingStatus === 'pending_verification') { // Only auto-complete if not already forced
+                        step2.brandingStatus = 'verified';
+                        step2.completed = true;
+                        renderOnboardingSteps();
+                        renderChecklist();
+                        updateProgressBar();
+                    }
+                }, 3000); // 3-second delay for simulation
+                */
+            }
+        }
+
+        /**
+         * Immediately completes the branding verification for Step 2 (for demo purposes).
+         */
+        function forceCompleteBrandingVerification() {
+            const step2 = onboardingSteps.find(step => step.id === 'step2');
+            if (step2 && step2.brandingStatus === 'pending_verification') {
+                step2.brandingStatus = 'verified';
+                step2.completed = true; // Mark as completed once verified
+                renderOnboardingSteps(); // Update UI to show completed state
+                renderChecklist(); // Update checklist to show completed state
+                updateProgressBar(); // Update progress bar
+            }
+        }
+
+        /**
+         * Shows the celebration modal.
+         */
+        function showCelebrationModal() {
+            celebrationModal.classList.remove('hidden');
+        }
+
+        /**
+         * Hides the celebration modal.
+         */
+        function hideCelebrationModal() {
+            celebrationModal.classList.add('hidden');
+        }
+
+        /**
+         * Opens the main onboarding popup.
+         */
+        function openOnboardingPopup() {
+            onboardingPopup.classList.add('open');
+            openOnboardingFab.classList.add('hidden');
+            isOnboardingPopupOpen = true;
+        }
+
+        /**
+         * Closes the main onboarding popup.
+         */
+        function closeOnboardingPopup() {
+            onboardingPopup.classList.remove('open');
+            openOnboardingFab.classList.remove('hidden');
+            isOnboardingPopupOpen = false;
+        }
+
+        /**
+         * Toggles the visibility of the left checklist panel for smaller screens.
+         */
+        function toggleChecklistPanel() {
+            checklistPanel.classList.toggle('translate-y-full'); // Moves panel off-screen
+            openChecklistButton.classList.toggle('hidden'); // Shows/hides open button
+        }
+
+        // Event listeners
+        closeChecklistButton.addEventListener('click', toggleChecklistPanel);
+        openChecklistButton.addEventListener('click', toggleChecklistPanel);
+        closeCelebrationModalButton.addEventListener('click', hideCelebrationModal);
+        celebrationModal.addEventListener('click', (event) => {
+            // Hide modal if clicked outside the content box
+            if (event.target === celebrationModal) {
+                hideCelebrationModal();
+            }
+        });
+
+        openOnboardingFab.addEventListener('click', openOnboardingPopup);
+        closeOnboardingPopupBtn.addEventListener('click', closeOnboardingPopup);
+
+
+        // Initial render on page load
+        window.onload = function() {
+            renderOnboardingSteps();
+            renderChecklist();
+            updateProgressBar();
+
+            // Hide checklist initially on small screens
+            if (window.innerWidth < 1024) { // Tailwind's 'lg' breakpoint is 1024px
+                checklistPanel.classList.add('translate-y-full');
+                openChecklistButton.classList.remove('hidden');
+            } else {
+                openChecklistButton.classList.add('hidden'); // Hide open button on large screens
+            }
+
+            // Initially close the onboarding popup and show the FAB
+            closeOnboardingPopup();
+        };
+
+        // Adjust checklist and popup visibility on window resize
+        window.addEventListener('resize', () => {
+            if (window.innerWidth >= 1024) {
+                checklistPanel.classList.remove('translate-y-full'); // Ensure left checklist visible on large screens
+                openChecklistButton.classList.add('hidden'); // Hide mobile FAB for left checklist
+            } else {
+                // If resized to small screen, ensure left checklist is hidden unless manually opened
+                if (!checklistPanel.classList.contains('translate-y-full')) {
+                     checklistPanel.classList.add('translate-y-full');
+                }
+                openChecklistButton.classList.remove('hidden');
+            }
+
+            // Ensure popup positioning adapts on resize
+            if (isOnboardingPopupOpen) {
+                onboardingPopup.classList.add('open'); // Re-apply 'open' class to trigger transition if needed
+            } else {
+                onboardingPopup.classList.remove('open');
+            }
+        });
+
     </script>
 </body>
 </html> 
