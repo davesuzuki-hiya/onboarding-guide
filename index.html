@@ -190,19 +190,21 @@
             </div>
     </div>
 
-    <button id="open-onboarding-fab" class="hidden">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
-        </svg>
-        Onboarding Checklist
-    </button>
-    <div id="fab-progress-container" style="position:fixed;right:1rem;bottom:0.5rem;width:320px;z-index:71;display:none;">
-        <div class="flex justify-between items-center mb-1 px-1">
-            <span class="text-sm font-medium text-gray-700">Overall Progress</span>
-            <span id="fab-progress-text" class="text-sm font-semibold text-indigo-600">0% Complete</span>
-        </div>
-        <div class="w-full bg-gray-200 rounded-full h-3">
-            <div id="fab-progress-bar" class="bg-indigo-500 h-3 rounded-full transition-all duration-500 ease-out" style="width: 0%;"></div>
+    <div id="fab-progress-container" style="position:fixed;right:1rem;bottom:1rem;width:340px;z-index:71;display:none;">
+        <div class="bg-white rounded-2xl shadow-xl p-4 flex flex-col items-stretch">
+            <button id="open-onboarding-fab" class="w-full flex items-center justify-center bg-indigo-600 text-white px-5 py-3 rounded-full font-medium text-base shadow hover:bg-indigo-700 transition mb-3">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                </svg>
+                Onboarding Checklist
+            </button>
+            <div class="flex justify-between items-center mb-1 px-1">
+                <span class="text-sm font-medium text-gray-700">Overall Progress</span>
+                <span id="fab-progress-text" class="text-sm font-semibold text-indigo-600">0% Complete</span>
+            </div>
+            <div class="w-full bg-gray-200 rounded-full h-3">
+                <div id="fab-progress-bar" class="bg-indigo-500 h-3 rounded-full transition-all duration-500 ease-out" style="width: 0%;"></div>
+            </div>
         </div>
     </div>
 
@@ -526,7 +528,6 @@
          */
         function openOnboardingPopup() {
             onboardingPopup.classList.add('open');
-            openOnboardingFab.classList.add('hidden');
             document.getElementById('fab-progress-container').style.display = 'none';
             isOnboardingPopupOpen = true;
         }
@@ -536,7 +537,6 @@
          */
         function closeOnboardingPopup() {
             onboardingPopup.classList.remove('open');
-            openOnboardingFab.classList.remove('hidden');
             document.getElementById('fab-progress-container').style.display = 'block';
             isOnboardingPopupOpen = false;
         }
@@ -570,15 +570,13 @@
             renderChecklist();
             updateProgressBar();
 
-            // Hide checklist initially on small screens
-            if (window.innerWidth < 1024) { // Tailwind's 'lg' breakpoint is 1024px
+            if (window.innerWidth < 1024) {
                 checklistPanel.classList.add('translate-y-full');
                 openChecklistButton.classList.remove('hidden');
             } else {
-                openChecklistButton.classList.add('hidden'); // Hide open button on large screens
+                openChecklistButton.classList.add('hidden');
             }
 
-            // Initially close the onboarding popup and show the FAB
             closeOnboardingPopup();
             document.getElementById('fab-progress-container').style.display = 'block';
         };
