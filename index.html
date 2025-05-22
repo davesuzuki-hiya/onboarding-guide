@@ -196,11 +196,14 @@
         </svg>
         Onboarding Checklist
     </button>
-    <div id="fab-progress-container" style="position:fixed;right:1rem;bottom:0.5rem;width:240px;z-index:71;display:none;">
-        <div class="w-full bg-gray-200 rounded-full h-2">
-            <div id="fab-progress-bar" class="bg-indigo-500 h-2 rounded-full transition-all duration-500 ease-out" style="width: 0%;"></div>
+    <div id="fab-progress-container" style="position:fixed;right:1rem;bottom:0.5rem;width:320px;z-index:71;display:none;">
+        <div class="flex justify-between items-center mb-1 px-1">
+            <span class="text-sm font-medium text-gray-700">Overall Progress</span>
+            <span id="fab-progress-text" class="text-sm font-semibold text-indigo-600">0% Complete</span>
         </div>
-        <div id="fab-progress-text" class="text-xs text-gray-600 mt-1 text-right pr-1"></div>
+        <div class="w-full bg-gray-200 rounded-full h-3">
+            <div id="fab-progress-bar" class="bg-indigo-500 h-3 rounded-full transition-all duration-500 ease-out" style="width: 0%;"></div>
+        </div>
     </div>
 
     <div id="celebration-modal" class="hidden fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-[100] fade-in">
