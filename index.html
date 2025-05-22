@@ -196,6 +196,12 @@
         </svg>
         Onboarding Checklist
     </button>
+    <div id="fab-progress-container" style="position:fixed;right:1rem;bottom:0.5rem;width:240px;z-index:71;display:none;">
+        <div class="w-full bg-gray-200 rounded-full h-2">
+            <div id="fab-progress-bar" class="bg-indigo-500 h-2 rounded-full transition-all duration-500 ease-out" style="width: 0%;"></div>
+        </div>
+        <div id="fab-progress-text" class="text-xs text-gray-600 mt-1 text-right pr-1"></div>
+    </div>
 
     <div id="celebration-modal" class="hidden fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-[100] fade-in">
         <div class="bg-white rounded-xl shadow-2xl p-8 max-w-md w-11/12 text-center zoom-in relative">
@@ -434,6 +440,12 @@
             if (completedSteps === totalSteps) {
                 showCelebrationModal();
             }
+
+            // Update FAB progress bar
+            const fabProgressBar = document.getElementById('fab-progress-bar');
+            const fabProgressText = document.getElementById('fab-progress-text');
+            fabProgressBar.style.width = `${progressPercentage}%`;
+            fabProgressText.textContent = `${progressPercentage}% Complete (${completedSteps} of ${totalSteps} steps)`;
         }
 
         /**
@@ -512,6 +524,7 @@
         function openOnboardingPopup() {
             onboardingPopup.classList.add('open');
             openOnboardingFab.classList.add('hidden');
+            document.getElementById('fab-progress-container').style.display = 'none';
             isOnboardingPopupOpen = true;
         }
 
@@ -521,6 +534,7 @@
         function closeOnboardingPopup() {
             onboardingPopup.classList.remove('open');
             openOnboardingFab.classList.remove('hidden');
+            document.getElementById('fab-progress-container').style.display = 'block';
             isOnboardingPopupOpen = false;
         }
 
@@ -563,6 +577,7 @@
 
             // Initially close the onboarding popup and show the FAB
             closeOnboardingPopup();
+            document.getElementById('fab-progress-container').style.display = 'block';
         };
 
         // Adjust checklist and popup visibility on window resize
